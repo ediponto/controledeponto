@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle de Ponto</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f8f8;
+      text-align: center;
+      padding: 40px;
+    }
+    h1 {
+      color: #660000;
+      margin-bottom: 20px;
+    }
+    input, button {
+      padding: 12px;
+      font-size: 16px;
+      margin: 10px;
+      width: 250px;
+      max-width: 80%;
+    }
+    button {
+      background-color: #660000;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    button:hover {
+      background-color: #990000;
+    }
+    #mensagem {
+      margin-top: 20px;
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Registro de Ponto</h1>
+  <input type="text" id="codigo" placeholder="Digite seu código"><br>
+  <button onclick="registrar('Entrada')">Registrar Entrada</button>
+  <button onclick="registrar('Saída')">Registrar Saída</button>
+  <div id="mensagem"></div>
+  <script>
+    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbweS1X3pwOcna_SwLkZopzHKx17zCcTcogbFJZm_uIlfAv8vNHGKt_EBb4NJeaohuAecQ/exec";
+    const localAutorizado = {
+      latitude: -20.764528,
+      longitude: -42.868944,
+      raioMetros: 50000
+    };
+    function getDistancia(lat1, lon1, lat2, lon2) {
+      const R = 6371e3;
+      const φ1 = lat1 * Math.PI / 180;
+      const φ2 = lat2 * Math.PI / 180;
+      const Δφ = (lat2 - lat1) * Math.PI / 180;
+      const Δλ = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+    function registrar(acao) {
+      const codigo = document.getElementById("codigo").value.trim();
+      const mensagem = document.getElementById("mensagem");
+
+      if (!codigo) {
+        mensagem.innerText = "Digite seu código!";
+        return;
+      }
+
+      mensagem.innerText = "Verificando localização...";
+
+      navigator.geolocation.getCurrentPosition(position => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        const distancia = getDistancia(lat, lon, localAutorizado.latitude, localAutorizado.longitude);
+
+        if (distancia > localAutorizado.raioMetros) {
+          mensagem.innerText = `Você está fora da área permitida (${distancia.toFixed(1)} metros).`;
+          return;
+        }
+
+        fetch(URL_SCRIPT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `codigo=${encodeURIComponent(codigo)}&acao=${encodeURIComponent(acao)}&latitude=${lat}&longitude=${lon}`
+        })
+        .then(res => res.text())
+        .then(texto => {
+          mensagem.innerText = texto.trim();
+          if (texto.trim().toLowerCase().includes("sucesso")) {
+            document.getElementById("codigo").value = "";
+          }
+        })
+        .catch(() => {
+          mensagem.innerText = "Erro ao conectar com o servidor.";
+        });
+
+      }, error => {
+        mensagem.innerText = "Erro ao obter localização: " + error.message;
+      });
+    }
+  </script>
+</body>
+</html>
