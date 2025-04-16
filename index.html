@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Controle de Ponto</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; text-align: center; background-color: #f3f3f3; }
+    input, button { padding: 10px; margin: 10px; font-size: 16px; }
+    #mensagem { margin-top: 20px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Registro de Ponto (com validação de código)</h1>
+
+  <input type="text" id="codigo" placeholder="Digite seu código" required><br>
+  <button onclick="registrar('Entrada')">Registrar Entrada</button>
+  <button onclick="registrar('Saída')">Registrar Saída</button>
+
+  <div id="mensagem"></div>
+
+  <script>
+    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbygtVYisqzkA-N__mZOFDaulwaDoR1lA9ikQuQEGmK93Iqs9P-1xsh7wodH1-w8GIN6/exec"; // Substitua pelo seu URL do Apps Script
+
+    function registrar(acao) {
+      const codigo = document.getElementById('codigo').value.trim();
+      const mensagem = document.getElementById('mensagem');
+      mensagem.innerText = "Verificando código e registrando...";
+
+      if (!codigo) {
+        mensagem.innerText = "Digite seu código!";
+        return;
+      }
+
+      fetch(URL_SCRIPT, {
+        method: 'POST',
+        mode: 'cors',  // Habilitando o CORS
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `codigo=${encodeURIComponent(codigo)}&acao=${encodeURIComponent(acao)}`
+      })
+      .then(response => response.text())
+      .then(texto => {
+        if (texto.trim() === "OK") {
+          mensagem.innerText = `Ponto de ${acao} registrado com sucesso!`;
+          document.getElementById('codigo').value = '';
+        } else {
+          mensagem.innerText = texto; // Exibe "Código inválido."
+        }
+      })
+      .catch(() => {
+        mensagem.innerText = "Erro ao conectar com o servidor.";
+      });
+    }
+  </script>
+</body>
+</html>
