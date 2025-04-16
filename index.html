@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Controle de Ponto</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; text-align: center; background-color: #f3f3f3; }
+    input, button { padding: 10px; margin: 10px; font-size: 16px; }
+    #mensagem { margin-top: 20px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Registro de Ponto (com validação de código e localização)</h1>
+
+  <input type="text" id="codigo" placeholder="Digite seu código" required><br>
+  <button onclick="registrar('Entrada')">Registrar Entrada</button>
+  <button onclick="registrar('Saída')">Registrar Saída</button>
+
+  <div id="mensagem"></div>
+
+  <script>
+    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbyTfPgSSol9HOy6YWCGZjB4TelKGBVVmpv4N9-2D77bvhvQxJr3HiANy3sNfBRx3D_j4g/exec"; // Substitua pelo seu URL do Apps Script
+
+    const localAutorizado = {
+      latitude: -20.764682,
+      longitude: -42.68739,
+      raioMetros: 50000
+    };
+
+    function getDistancia(lat1, lon1, lat2, lon2) {
+      const R = 6371e3;
+      const φ1 = lat1 * Math.PI / 180;
+      const φ2 = lat2 * Math.PI / 180;
+      const Δφ = (lat2 - lat1) * Math.PI / 180;
+      const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+      return R * c;
+    }
+
+    function registrar(acao) {
+      const codigo = document.getElementById('codigo').value.trim();
+      const mensagem = document.getElementById('mensagem');
+      mensagem.innerText = "Verificando código e localização...";
+
+      if (!codigo) {
+        mensagem.innerText = "Digite seu código!";
+        return;
+      }
+
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+
+          const distancia = getDistancia(lat, lon, localAutorizado.latitude, localAutorizado.longitude);
+
+          if (distancia > localAutorizado.raioMetros) {
+            mensagem.innerText = `Você está fora da área permitida (${distancia.toFixed(1)} metros).`;
+            return;
+          }
+
+          enviarRegistro(codigo, acao, lat, lon);
+        }, function() {
+          mensagem.innerText = "Não foi possível obter sua localização.";
+        });
+      } else {
+        mensagem.innerText = "Geolocalização não é suportada pelo seu navegador.";
+      }
+    }
+
+    function enviarRegistro(codigo, acao, lat, lon) {
+      const mensagem = document.getElementById('mensagem');
+      fetch(URL_SCRIPT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `codigo=${encodeURIComponent(codigo)}&acao=${encodeURIComponent(acao)}&latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}`
+      })
+      .then(response => response.text())
+      .then(texto => {
+        if (texto.trim() === "Ponto registrado com sucesso.") {
+          mensagem.innerText = `Ponto de ${acao} registrado com sucesso!`;
+          document.getElementById('codigo').value = '';
+        } else {
+          mensagem.innerText = texto;
+        }
+      })
+      .catch(() => {
+        mensagem.innerText = "Erro ao conectar com o servidor.";
+      });
+    }
+  </script>
+</body>
+</html>
