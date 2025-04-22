@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Controle de Ponto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --cor-principal: rgb(90, 0, 0);
+      --cor-secundaria: rgb(0, 0, 0);
+      --cor-clara: rgb(255, 255, 255);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Arial', sans-serif;
+      background-color: var(--cor-clara);
+      color: var(--cor-secundaria);
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      max-width: 100%;
+      width: 100%;
+      padding: 20px;
+    }
+
+    .logo {
+      max-width: 180px;
+      height: auto;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      color: var(--cor-principal);
+      margin-bottom: 25px;
+      font-size: 1.8rem;
+    }
+
+    input[type="text"] {
+      padding: 12px 15px;
+      width: 100%;
+      max-width: 320px;
+      border: 2px solid var(--cor-principal);
+      border-radius: 5px;
+      font-size: 16px;
+      margin-bottom: 15px;
+    }
+
+    .botoes {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 330px;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+
+    .botoes button {
+      flex: 1 1 140px;
+      min-width: 140px;
+      background-color: var(--cor-principal);
+      color: var(--cor-clara);
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .botoes button:hover {
+      background-color: rgb(120, 0, 0);
+    }
+
+    #mensagem {
+      margin-top: 20px;
+      font-weight: bold;
+      color: var(--cor-principal);
+      max-width: 320px;
+    }
+
+    @media (max-width: 400px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      input[type="text"],
+      .botoes button {
+        width: 90%;
+      }
+
+      .logo {
+        max-width: 140px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="https://lh3.googleusercontent.com/p/AF1QipM9E5V3Ijc57cg1AGuqz55WvFjcfaIVQbmWw21x=s1360-w1360-h1020" alt="Logo da Empresa" class="logo">
+    <h1>Registro de Ponto</h1>
+
+    <input type="text" id="codigo" placeholder="Digite seu código" required><br>
+
+    <div class="botoes">
+      <button onclick="registrar('Entrada')">Entrada</button>
+      <button onclick="registrar('Saída')">Saída</button>
+    </div>
+
+    <div id="mensagem"></div>
+  </div>
+
+  <script>
+    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbygtVYisqzkA-N__mZOFDaulwaDoR1lA9ikQuQEGmK93Iqs9P-1xsh7wodH1-w8GIN6/exec";
+
+    const localAutorizado = {
+      latitude: -20.7648,
+      longitude: -42.8691,
+      raioMetros: 60
+    };
+
+    function getDistancia(lat1, lon1, lat2, lon2) {
+      const R = 6371e3;
+      const φ1 = lat1 * Math.PI / 180;
+      const φ2 = lat2 * Math.PI / 180;
+      const Δφ = (lat2 - lat1) * Math.PI / 180;
+      const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+      return R * c;
+    }
+
+    function registrar(acao) {
+      const codigo = document.getElementById('codigo').value.trim();
+      const mensagem = document.getElementById('mensagem');
+      mensagem.innerText = "Verificando código e localização...";
+
+      if (!codigo) {
+        mensagem.innerText = "Digite seu código!";
+        return;
+      }
+
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          const distancia = getDistancia(lat, lon, localAutorizado.latitude, localAutorizado.longitude);
+
+          if (distancia > localAutorizado.raioMetros) {
+            mensagem.innerText = `Você está fora da área permitida (${distancia.toFixed(1)} metros).`;
+            return;
+          }
+
+          enviarRegistro(codigo, acao);
+        }, function(erro) {
+          mensagem.innerText = "Erro ao obter localização: " + erro.message;
+        });
+      } else {
+        mensagem.innerText = "Seu navegador não suporta geolocalização.";
+      }
+    }
+
+    function enviarRegistro(codigo, acao) {
+      fetch(URL_SCRIPT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `codigo=${encodeURIComponent(codigo)}&acao=${encodeURIComponent(acao)}`
+      })
+      .then(response => response.text())
+      .then(texto => {
+        const mensagem = document.getElementById('mensagem');
+        if (texto.trim() === "OK") {
+          mensagem.innerText = `Ponto de ${acao} registrado com sucesso!`;
+          document.getElementById('codigo').value = '';
+        } else {
+          mensagem.innerText = texto;
+        }
+      })
+      .catch(() => {
+        document.getElementById('mensagem').innerText = "Erro ao conectar com o servidor.";
+      });
+    }
+  </script>
+</body>
+</html>
