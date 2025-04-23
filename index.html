@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Controle de Ponto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --cor-principal: rgb(90, 0, 0);
+      --cor-secundaria: rgb(0, 0, 0);
+      --cor-clara: rgb(255, 255, 255);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Arial', sans-serif;
+      background-color: var(--cor-clara);
+      color: var(--cor-secundaria);
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      max-width: 100%;
+      width: 100%;
+    }
+
+    .logo {
+      max-width: 180px;
+      height: auto;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      color: var(--cor-principal);
+      margin-bottom: 25px;
+      font-size: 1.8rem;
+    }
+
+    input[type="text"] {
+      padding: 12px 15px;
+      width: 100%;
+      max-width: 320px;
+      border: 2px solid var(--cor-principal);
+      border-radius: 5px;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .botoes {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 330px;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+
+    .botoes button {
+      flex: 1 1 140px;
+      min-width: 140px;
+      background-color: var(--cor-principal);
+      color: var(--cor-clara);
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .botoes button:hover {
+      background-color: rgb(120, 0, 0);
+    }
+
+    #mensagem {
+      margin-top: 20px;
+      font-weight: bold;
+      color: var(--cor-principal);
+      max-width: 320px;
+    }
+
+    #nomeMembro {
+      margin-bottom: 10px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    #presentes {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: #eee;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      max-width: 240px;
+    }
+
+    #presentes h3 {
+      margin-bottom: 8px;
+      font-size: 1rem;
+      color: var(--cor-principal);
+    }
+
+    #presentes ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    #presentes li {
+      font-size: 0.9rem;
+      text-align: left;
+    }
+
+    @media (max-width: 400px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      input[type="text"],
+      .botoes button {
+        width: 90%;
+      }
+
+      .logo {
+        max-width: 140px;
+      }
+
+      #presentes {
+        position: static;
+        margin-bottom: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="presentes">
+    <h3>Presentes na sede</h3>
+    <ul id="listaPresentes">
+      <li>Carregando...</li>
+    </ul>
+  </div>
+
+  <div class="container">
+    <img src="https://lh3.googleusercontent.com/p/AF1QipM9E5V3Ijc57cg1AGuqz55WvFjcfaIVQbmWw21x=s1360-w1360-h1020" alt="Logo da Empresa" class="logo">
+    <h1>Registro de Ponto</h1>
+
+    <input type="text" id="codigo" placeholder="Digite seu código" required><br>
+    <div id="nomeMembro"></div>
+
+    <div class="botoes">
+      <button onclick="registrar('Entrada')">Entrada</button>
+      <button onclick="registrar('Saída')">Saída</button>
+    </div>
+
+    <div id="mensagem"></div>
+  </div>
+
+  <script>
+    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbygtVYisqzkA-N__mZOFDaulwaDoR1lA9ikQuQEGmK93Iqs9P-1xsh7wodH1-w8GIN6/exec";
+
+    const localAutorizado = {
+      latitude: -20.7648,
+      longitude: -42.8691,
+      raioMetros: 60
+    };
+
+    function getDistancia(lat1, lon1, lat2, lon2) {
+      const R = 6371e3;
+      const φ1 = lat1 * Math.PI / 180;
+      const φ2 = lat2 * Math.PI / 180;
+      const Δφ = (lat2 - lat1) * Math.PI / 180;
+      const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+      return R * c;
+    }
+
+    function registrar(acao) {
+      const codigo = document.getElementById('codigo').value.trim();
+      const mensagem = document.getElementById('mensagem');
+      mensagem.innerText = "Verificando código e localização...";
+
+      if (!codigo) {
+        mensagem.innerText = "Digite seu código!";
+        return;
+      }
+
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          const distancia = getDistancia(lat, lon, localAutorizado.latitude, localAutorizado.longitude);
+
+          if (distancia > localAutorizado.raioMetros) {
+            mensagem.innerText = `Você está fora da área permitida (${distancia.toFixed(1)} metros).`;
+            return;
+          }
+
+          enviarRegistro(codigo, acao);
+        }, function(erro) {
+          mensagem.innerText = "Erro ao obter localização: " + erro.message;
+        });
+      } else {
+        mensagem.innerText = "Seu navegador não suporta geolocalização.";
+      }
+    }
+
+    function enviarRegistro(codigo, acao) {
+      fetch(URL_SCRIPT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `codigo=${encodeURIComponent(codigo)}&acao=${encodeURIComponent(acao)}`
+      })
+      .then(response => response.text())
+      .then(texto => {
+        const mensagem = document.getElementById('mensagem');
+        if (texto === "Entrada Registrada") {
+          mensagem.innerText = "Entrada registrada com sucesso!";
+        } else if (texto === "Saída Registrada") {
+          mensagem.innerText = "Saída registrada com sucesso!";
+        } else {
+          mensagem.innerText = texto;
+        }
+      });
+    }
+
+    function buscarNome(codigo) {
+      if (!codigo.trim()) return;
+
+      fetch(`${URL_SCRIPT}?acao=buscar_nome&codigo=${encodeURIComponent(codigo)}`)
+        .then(response => response.text())
+        .then(texto => {
+          const nomeMembro = document.getElementById('nomeMembro');
+          nomeMembro.innerText = texto !== "Código inválido." ? `Membro: ${texto}` : texto;
+        });
+    }
+
+    document.getElementById('codigo').addEventListener('keydown', function(event) {
+      if (event.key === "Enter") {
+        buscarNome(this.value);
+      }
+    });
+
+    document.getElementById('codigo').addEventListener('blur', function() {
+      buscarNome(this.value);
+    });
+
+    function carregarPresentes() {
+      fetch(`${URL_SCRIPT}?acao=presentes`)
+        .then(response => response.json())
+        .then(presentes => {
+          const lista = document.getElementById('listaPresentes');
+          lista.innerHTML = presentes.length ? presentes.map(p => `<li>${p}</li>`).join('') : '<li>Ninguém presente.</li>';
+        });
+    }
+
+    // Chama a função para carregar os presentes imediatamente e depois a cada 1 minuto
+    carregarPresentes();
+    setInterval(carregarPresentes, 60000);
+  </script>
+</body>
+</html>
