@@ -174,7 +174,7 @@
   </div>
 
   <script>
-    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbygtVYisqzkA-N__mZOFDaulwaDoR1lA9ikQuQEGmK93Iqs9P-1xsh7wodH1-w8GIN6/exec";
+    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbzZY3BJzddPag3f-m26Mgq4jIRtfzVr4z5G6qyIyRV0jrZOEYATOPwV70cg7KGKSdJc/exec";
 
     const localAutorizado = {
       latitude: -20.7648,
@@ -197,54 +197,71 @@
       return R * c;
     }
 
-    function registrar(acao) {
-      const codigo = document.getElementById('codigo').value.trim();
-      const mensagem = document.getElementById('mensagem');
-      mensagem.innerText = "Verificando código e localização...";
+async function registrar(acao) {
+  const codigo = document.getElementById('codigo').value.trim();
+  const mensagem = document.getElementById('mensagem');
+  mensagem.innerText = "Verificando código...";
 
-      if (!codigo) {
-        mensagem.innerText = "Digite seu código!";
+  if (!codigo) {
+    mensagem.innerText = "Digite seu código!";
+    return;
+  }
+
+function enviarRegistro(codigo, acao) {
+  const mensagem = document.getElementById('mensagem');
+  mensagem.innerText = "Registrando...";
+
+  // Envia por POST, igual ao que o Apps Script espera (doPost)
+  fetch(URL_SCRIPT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+    body: `codigo=${encodeURIComponent(codigo)}&acao=${encodeURIComponent(acao)}`
+  })
+  .then(response => response.text())
+  .then(resposta => {
+    // mostra a resposta do servidor (ex: "Entrada Registrada")
+    mensagem.innerText = resposta;
+    // limpa campo e atualiza lista
+    document.getElementById('codigo').value = "";
+    document.getElementById('nomeMembro').innerText = "";
+    carregarPresentes();
+  })
+  .catch(err => {
+    console.error(err);
+    mensagem.innerText = "Erro ao registrar: " + (err.message || err);
+  });
+}
+  // 1 — Consultar modo férias no servidor
+const res = await fetch(`${URL_SCRIPT}?acao=ferias`);
+const modoFeriasAtivo = (await res.text()).trim().toUpperCase() === "TRUE";
+
+// SE MODO FÉRIAS → IGNORA LOCALIZAÇÃO COMPLETAMENTE
+if (modoFeriasAtivo) {
+  enviarRegistro(codigo, acao);
+  return;
+}
+
+  // 2 — Caso NÃO esteja em férias → verifica localização normal
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(position) {
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+      const distancia = getDistancia(lat, lon, localAutorizado.latitude, localAutorizado.longitude);
+
+      if (distancia > localAutorizado.raioMetros) {
+        mensagem.innerText = `Você está fora da área permitida (${distancia.toFixed(1)} metros).`;
         return;
       }
 
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
-          const lat = position.coords.latitude;
-          const lon = position.coords.longitude;
-          const distancia = getDistancia(lat, lon, localAutorizado.latitude, localAutorizado.longitude);
+      enviarRegistro(codigo, acao);
+    }, function(erro) {
+      mensagem.innerText = "Erro ao obter localização: " + erro.message;
+    });
+  } else {
+    mensagem.innerText = "Seu navegador não suporta geolocalização.";
+  }
+}
 
-          if (distancia > localAutorizado.raioMetros) {
-            mensagem.innerText = `Você está fora da área permitida (${distancia.toFixed(1)} metros).`;
-            return;
-          }
-
-          enviarRegistro(codigo, acao);
-        }, function(erro) {
-          mensagem.innerText = "Erro ao obter localização: " + erro.message;
-        });
-      } else {
-        mensagem.innerText = "Seu navegador não suporta geolocalização.";
-      }
-    }
-
-    function enviarRegistro(codigo, acao) {
-      fetch(URL_SCRIPT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `codigo=${encodeURIComponent(codigo)}&acao=${encodeURIComponent(acao)}`
-      })
-      .then(response => response.text())
-      .then(texto => {
-        const mensagem = document.getElementById('mensagem');
-        if (texto === "Entrada Registrada") {
-          mensagem.innerText = "Entrada registrada com sucesso!";
-        } else if (texto === "Saída Registrada") {
-          mensagem.innerText = "Saída registrada com sucesso!";
-        } else {
-          mensagem.innerText = texto;
-        }
-      });
-    }
 
     function buscarNome(codigo) {
       if (!codigo.trim()) return;
