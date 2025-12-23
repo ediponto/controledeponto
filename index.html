@@ -2,185 +2,351 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Controle de Ponto</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ponto Edifica</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
   <style>
     :root {
-      --cor-principal: rgb(90, 0, 0);
-      --cor-secundaria: rgb(0, 0, 0);
-      --cor-clara: rgb(255, 255, 255);
+      /* PALETA DE CORES - EDIFICA CONSULTORIA */
+      --cor-bordo: #712C2C;       /* Cor Principal (Marca) */
+      --cor-texto-escuro: #333333; /* Cinza Chumbo */
+      --cor-texto-medio: #666666;  /* Cinza Médio */
+      --cor-fundo-pag: #f0f2f5;    /* Fundo da página */
+      --cor-borda: #e0e0e0;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html, body {
-      height: 100%;
-      font-family: 'Arial', sans-serif;
-      background-color: var(--cor-clara);
-      color: var(--cor-secundaria);
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
 
     body {
+      background-color: var(--cor-fundo-pag);
+      /* Textura técnica sutil (grid) */
+      background-image: radial-gradient(#ccc 1px, transparent 1px);
+      background-size: 20px 20px;
+      font-family: 'Lato', sans-serif;
+      min-height: 100vh;
       display: flex;
-      justify-content: center;
       align-items: center;
-      padding: 20px;
+      justify-content: center;
+      padding: 15px;
+      color: var(--cor-texto-escuro);
     }
 
-    .container {
+    /* --- ESTRUTURA DO CARTÃO (Bloco Sólido) --- */
+    .app-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 380px;
+      border-radius: 6px; /* Cantos técnicos, pouco arredondados */
+      box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      /* Linha superior na cor da marca */
+      border-top: 6px solid var(--cor-bordo);
+    }
+
+    /* --- CABEÇALHO --- */
+    .header {
+      padding: 35px 20px 15px;
+      text-align: center;
+      background-color: #fff;
+    }
+
+    .logo-container {
+      width: 130px; /* Tamanho controlado da logo */
+      height: 130px;
+      margin: 0 auto 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain; /* Garante que a logo não distorça */
+    }
+
+    .title-area h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--cor-bordo);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 5px;
+    }
+
+    /* --- RELÓGIO (Estilo Técnico) --- */
+    .info-bar {
+      text-align: center;
+      padding-bottom: 25px;
+      border-bottom: 1px solid var(--cor-borda);
+    }
+
+    .clock {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: var(--cor-texto-escuro);
+      line-height: 1.1;
+    }
+    .date {
+      font-size: 0.85rem;
+      color: var(--cor-texto-medio);
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* --- ÁREA DE INPUT --- */
+    .action-area {
+      padding: 30px 25px;
+      background-color: #fff;
+    }
+
+    .input-wrapper {
+      position: relative;
+      margin-bottom: 25px;
+    }
+
+    .code-input {
+      width: 100%;
+      padding: 16px 16px 16px 45px;
+      font-size: 1.1rem;
+      border: 2px solid var(--cor-borda);
+      border-radius: 5px;
+      color: var(--cor-texto-escuro);
+      font-weight: 700;
+      font-family: 'Montserrat', sans-serif;
+      transition: all 0.3s;
+      background-color: #fafafa;
+    }
+
+    .code-input:focus {
+      border-color: var(--cor-bordo);
+      background-color: #fff;
+      box-shadow: 0 4px 10px rgba(113, 44, 44, 0.08);
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #999;
+      font-size: 1.1rem;
+    }
+    
+    .code-input:focus + .input-icon { color: var(--cor-bordo); }
+
+    .member-feedback {
+      height: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--cor-bordo);
+      margin-top: 8px;
+      padding-left: 5px;
+    }
+
+    /* --- BOTÕES --- */
+    .buttons-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .btn {
+      border: none;
+      padding: 18px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.9rem;
       display: flex;
       flex-direction: column;
       align-items: center;
+      gap: 8px;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* Entrada: Cinza Escuro (Sóbrio) */
+    .btn-entry {
+      background-color: var(--cor-texto-escuro);
+      color: white;
+    }
+
+    /* Saída: Bordo (Marca/Destaque) */
+    .btn-exit {
+      background-color: var(--cor-bordo);
+      color: white;
+    }
+
+    .message-box {
       text-align: center;
-      max-width: 100%;
-      width: 100%;
-    }
-
-    .logo {
-      max-width: 180px;
-      height: auto;
-      margin-bottom: 20px;
-    }
-
-    h1 {
-      color: var(--cor-principal);
-      margin-bottom: 25px;
-      font-size: 1.8rem;
-    }
-
-    input[type="text"] {
-      padding: 12px 15px;
-      width: 100%;
-      max-width: 320px;
-      border: 2px solid var(--cor-principal);
-      border-radius: 5px;
-      font-size: 16px;
-      margin-bottom: 10px;
-    }
-
-    .botoes {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: center;
-      max-width: 330px;
-      width: 100%;
-      margin-bottom: 15px;
-    }
-
-    .botoes button {
-      flex: 1 1 140px;
-      min-width: 140px;
-      background-color: var(--cor-principal);
-      color: var(--cor-clara);
-      border: none;
-      padding: 12px 20px;
-      font-size: 16px;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-
-    .botoes button:hover {
-      background-color: rgb(120, 0, 0);
-    }
-
-    #mensagem {
       margin-top: 20px;
-      font-weight: bold;
-      color: var(--cor-principal);
-      max-width: 320px;
-    }
-
-    #nomeMembro {
-      margin-bottom: 10px;
-      font-weight: bold;
-      color: #333;
-    }
-
-    #presentes {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background-color: #eee;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      max-width: 240px;
-    }
-
-    #presentes h3 {
-      margin-bottom: 8px;
-      font-size: 1rem;
-      color: var(--cor-principal);
-    }
-
-    #presentes ul {
-      list-style: none;
-      padding-left: 0;
-    }
-
-    #presentes li {
+      min-height: 20px;
       font-size: 0.9rem;
-      text-align: left;
+      font-weight: 600;
+      color: var(--cor-texto-medio);
     }
 
-    @media (max-width: 400px) {
-      h1 {
-        font-size: 1.5rem;
-      }
-
-      input[type="text"],
-      .botoes button {
-        width: 90%;
-      }
-
-      .logo {
-        max-width: 140px;
-      }
-
-      #presentes {
-        position: static;
-        margin-bottom: 20px;
-      }
+    /* --- PAINEL DE MONITORAMENTO (RODAPÉ FIXO) --- */
+    .presence-panel {
+      background-color: #fcfcfc;
+      border-top: 1px solid var(--cor-borda);
+      display: flex;
+      flex-direction: column;
+      /* Altura fixa para simular um painel acoplado */
+      height: 220px; 
     }
+
+    .panel-header {
+      background-color: #ececec;
+      padding: 12px 20px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: var(--cor-texto-escuro);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.65rem;
+      color: #27ae60;
+    }
+    .dot { width: 6px; height: 6px; background: #27ae60; border-radius: 50%; box-shadow: 0 0 4px #27ae60; }
+
+    .presence-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      overflow-y: auto; /* Rolagem interna */
+      flex-grow: 1;
+    }
+
+    .presence-list li {
+      padding: 12px 20px;
+      border-bottom: 1px solid #eee;
+      font-size: 0.9rem;
+      color: #555;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .presence-list li i {
+      color: var(--cor-bordo);
+      font-size: 0.8rem;
+    }
+
+    /* Spinner Animado */
+    .spinner {
+      display: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #fff;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
   </style>
 </head>
 <body>
-  <div id="presentes">
-    <h3>Presentes na sede</h3>
-    <ul id="listaPresentes">
-      <li>Carregando...</li>
-    </ul>
-  </div>
 
-  <div class="container">
-    <img src="https://lh3.googleusercontent.com/p/AF1QipM9E5V3Ijc57cg1AGuqz55WvFjcfaIVQbmWw21x=s1360-w1360-h1020" alt="Logo da Empresa" class="logo">
-    <h1>Registro de Ponto</h1>
+  <div class="app-card">
+    
+    <header class="header">
+      <div class="logo-container">
+        <img src="https://lh3.googleusercontent.com/p/AF1QipM9E5V3Ijc57cg1AGuqz55WvFjcfaIVQbmWw21x=s1360-w1360-h1020" 
+             class="logo-img" 
+             alt="Edifica Consultoria"
+             onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block';">
+        
+        <div id="logo-fallback" style="display:none; color:var(--cor-bordo); font-weight:800; font-size:2rem; font-family:'Montserrat';">
+            EDIFICA
+        </div>
+      </div>
+    </header>
 
-    <input type="text" id="codigo" placeholder="Digite seu código" required><br>
-    <div id="nomeMembro"></div>
-
-    <div class="botoes">
-      <button onclick="registrar('Entrada')">Entrada</button>
-      <button onclick="registrar('Saída')">Saída</button>
+    <div class="info-bar">
+      <div class="clock" id="relogio">--:--</div>
+      <div class="date" id="dataHoje">...</div>
     </div>
 
-    <div id="mensagem"></div>
+    <div class="action-area">
+      <div class="input-wrapper">
+        <input type="tel" id="codigo" class="code-input" placeholder="CÓDIGO" autocomplete="off">
+        <i class="fa-solid fa-user-lock input-icon"></i>
+        <div id="nomeMembro" class="member-feedback"></div>
+      </div>
+
+      <div class="buttons-grid">
+        <button id="btnEntrada" class="btn btn-entry" onclick="registrar('Entrada')">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i>
+          <span>Entrada</span>
+          <div class="spinner"></div>
+        </button>
+
+        <button id="btnSaida" class="btn btn-exit" onclick="registrar('Saída')">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          <span>Saída</span>
+          <div class="spinner"></div>
+        </button>
+      </div>
+
+      <div id="mensagem" class="message-box"></div>
+    </div>
+
+    <div class="presence-panel">
+      <div class="panel-header">
+        <span><i class="fa-solid fa-list-check"></i> &nbsp; Membros na Sede</span>
+        <div class="status-indicator">
+          <span class="dot"></span> Online
+        </div>
+      </div>
+      <ul id="listaPresentes" class="presence-list">
+        <li style="justify-content:center; color:#bbb; padding-top:40px;">Carregando sistema...</li>
+      </ul>
+    </div>
+
   </div>
 
   <script>
-    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbw08IYc43nYowbhcOf-iZgsdxcHRC_6gNIej0nKtlXsgUJH7LZzKlNh69vA3FeRQesd/exec";
+    // URL DO SEU SCRIPT (BACKEND)
+    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbyecuPur_2LApcfkWeywLJrT0bOVDEGLjn_zyRxCnEVxUkQS3r55JRkJkgrhYIRh3eq/exec";
 
-    const localAutorizado = {
-      latitude: -20.7648,
-      longitude: -42.8691,
-      raioMetros: 60
-    };
+    // --- RELÓGIO DIGITAL ---
+    function atualizarRelogio() {
+      const now = new Date();
+      document.getElementById('relogio').innerText = now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+      const dataStr = now.toLocaleDateString('pt-BR', {weekday: 'long', day: 'numeric', month: 'long'});
+      document.getElementById('dataHoje').innerText = dataStr;
+    }
+    setInterval(atualizarRelogio, 1000);
+    atualizarRelogio();
+
+    // --- LÓGICA DO SISTEMA ---
+    const localAutorizado = { latitude: -20.7648, longitude: -42.8691, raioMetros: 60 };
 
     function getDistancia(lat1, lon1, lat2, lon2) {
       const R = 6371e3;
@@ -188,115 +354,129 @@
       const φ2 = lat2 * Math.PI / 180;
       const Δφ = (lat2 - lat1) * Math.PI / 180;
       const Δλ = (lon2 - lon1) * Math.PI / 180;
-
-      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-                Math.cos(φ1) * Math.cos(φ2) *
-                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-      return R * c;
+      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
-async function registrar(acao) {
-  const codigo = document.getElementById('codigo').value.trim();
-  const mensagem = document.getElementById('mensagem');
-  mensagem.innerText = "Verificando código...";
+    async function registrar(acao) {
+      const codigo = document.getElementById('codigo').value.trim();
+      const msg = document.getElementById('mensagem');
+      msg.style.color = "#666";
+      msg.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Verificando...';
 
-  if (!codigo) {
-    mensagem.innerText = "Digite seu código!";
-    return;
-  }
-
-function enviarRegistro(codigo, acao) {
-  const mensagem = document.getElementById('mensagem');
-  mensagem.innerText = "Registrando...";
-
-  // Envia por POST, igual ao que o Apps Script espera (doPost)
-  fetch(URL_SCRIPT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-    body: `codigo=${encodeURIComponent(codigo)}&acao=${encodeURIComponent(acao)}`
-  })
-  .then(response => response.text())
-  .then(resposta => {
-    // mostra a resposta do servidor (ex: "Entrada Registrada")
-    mensagem.innerText = resposta;
-    // limpa campo e atualiza lista
-    document.getElementById('codigo').value = "";
-    document.getElementById('nomeMembro').innerText = "";
-    carregarPresentes();
-  })
-  .catch(err => {
-    console.error(err);
-    mensagem.innerText = "Erro ao registrar: " + (err.message || err);
-  });
-}
-  // 1 — Consultar modo férias no servidor
-const res = await fetch(`${URL_SCRIPT}?acao=ferias`);
-const modoFeriasAtivo = (await res.text()).trim().toUpperCase() === "TRUE";
-
-// SE MODO FÉRIAS → IGNORA LOCALIZAÇÃO COMPLETAMENTE
-if (modoFeriasAtivo) {
-  enviarRegistro(codigo, acao);
-  return;
-}
-
-  // 2 — Caso NÃO esteja em férias → verifica localização normal
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(function(position) {
-      const lat = position.coords.latitude;
-      const lon = position.coords.longitude;
-      const distancia = getDistancia(lat, lon, localAutorizado.latitude, localAutorizado.longitude);
-
-      if (distancia > localAutorizado.raioMetros) {
-        mensagem.innerText = `Você está fora da área permitida (${distancia.toFixed(1)} metros).`;
+      if (!codigo) {
+        msg.style.color = "var(--cor-bordo)";
+        msg.innerText = "Por favor, digite seu código.";
         return;
       }
 
-      enviarRegistro(codigo, acao);
-    }, function(erro) {
-      mensagem.innerText = "Erro ao obter localização: " + erro.message;
-    });
-  } else {
-    mensagem.innerText = "Seu navegador não suporta geolocalização.";
-  }
-}
+      try {
+        const res = await fetch(`${URL_SCRIPT}?acao=ferias`);
+        const modoFerias = (await res.text()).trim().toUpperCase() === "TRUE";
 
+        if (modoFerias) { enviar(codigo, acao); return; }
 
-    function buscarNome(codigo) {
-      if (!codigo.trim()) return;
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(pos => {
+            const dist = getDistancia(pos.coords.latitude, pos.coords.longitude, localAutorizado.latitude, localAutorizado.longitude);
+            if (dist > localAutorizado.raioMetros) {
+              msg.style.color = "var(--cor-bordo)";
+              msg.innerHTML = `<i class="fa-solid fa-map-location-dot"></i> Fora da sede (${dist.toFixed(0)}m).`;
+            } else {
+              enviar(codigo, acao);
+            }
+          }, err => { msg.innerText = "Erro ao obter GPS."; });
+        } else { msg.innerText = "GPS obrigatório."; }
+      } catch (e) { msg.innerText = "Sem conexão."; }
+    }
 
-      fetch(`${URL_SCRIPT}?acao=buscar_nome&codigo=${encodeURIComponent(codigo)}`)
-        .then(response => response.text())
-        .then(texto => {
-          const nomeMembro = document.getElementById('nomeMembro');
-          nomeMembro.innerText = texto !== "Código inválido." ? `Membro: ${texto}` : texto;
+    function enviar(codigo, acao) {
+      const msg = document.getElementById('mensagem');
+      const btnEntrada = document.getElementById('btnEntrada');
+      const btnSaida = document.getElementById('btnSaida');
+
+      // Bloqueio UI
+      if(btnEntrada) btnEntrada.disabled = true;
+      if(btnSaida) btnSaida.disabled = true;
+
+      // Loader
+      const btn = acao === 'Entrada' ? btnEntrada : btnSaida;
+      const spinner = btn.querySelector('.spinner');
+      const icon = btn.querySelector('i');
+      if(spinner) spinner.style.display = 'block';
+      if(icon) icon.style.display = 'none';
+
+      const form = new FormData();
+      form.append('acao', acao);
+      form.append('codigo', codigo);
+
+      fetch(URL_SCRIPT, { method: 'POST', body: form })
+        .then(r => r.text())
+        .then(txt => {
+          if (txt.includes("ERRO")) {
+             msg.style.color = "var(--cor-bordo)";
+             msg.innerHTML = txt.replace('ERRO:', '⚠️');
+          } else {
+             msg.style.color = "#27ae60"; // Verde Sucesso
+             msg.innerHTML = `<i class="fa-solid fa-check-circle"></i> ${txt}`;
+             document.getElementById('codigo').value = "";
+             document.getElementById('nomeMembro').innerText = "";
+             carregarPresentes();
+          }
+        })
+        .catch(e => msg.innerText = "Erro: " + e.message)
+        .finally(() => {
+          setTimeout(() => {
+             if(btnEntrada) btnEntrada.disabled = false;
+             if(btnSaida) btnSaida.disabled = false;
+             document.querySelectorAll('.spinner').forEach(s => s.style.display = 'none');
+             document.querySelectorAll('.btn i').forEach(i => i.style.display = 'block');
+             document.getElementById('codigo').focus();
+          }, 2000);
         });
     }
 
-    document.getElementById('codigo').addEventListener('keydown', function(event) {
-      if (event.key === "Enter") {
-        buscarNome(this.value);
-      }
+    // Busca Nome Automática
+    let timerBusca;
+    document.getElementById('codigo').addEventListener('input', function() {
+       clearTimeout(timerBusca);
+       timerBusca = setTimeout(() => {
+         const val = this.value;
+         const el = document.getElementById('nomeMembro');
+         if(!val) { el.innerText = ""; return; }
+         el.innerText = "...";
+         
+         fetch(`${URL_SCRIPT}?acao=buscar_nome&codigo=${encodeURIComponent(val)}`)
+           .then(r => r.text())
+           .then(txt => {
+              if(txt !== "Código inválido.") {
+                el.innerText = txt;
+                el.style.color = "var(--cor-bordo)";
+              } else {
+                el.innerText = "Membro não encontrado";
+                el.style.color = "#999";
+              }
+           });
+       }, 500);
     });
 
-    document.getElementById('codigo').addEventListener('blur', function() {
-      buscarNome(this.value);
-    });
-
+    // Carregar Lista
     function carregarPresentes() {
       fetch(`${URL_SCRIPT}?acao=presentes`)
-        .then(response => response.json())
-        .then(presentes => {
+        .then(r => r.json())
+        .then(data => {
           const lista = document.getElementById('listaPresentes');
-          lista.innerHTML = presentes.length ? presentes.map(p => `<li>${p}</li>`).join('') : '<li>Ninguém presente.</li>';
-        });
+          if (data.length) {
+            lista.innerHTML = data.map(p => `<li><i class="fa-solid fa-helmet-safety"></i> ${p}</li>`).join('');
+          } else {
+            lista.innerHTML = '<li style="justify-content:center; padding:30px; color:#bbb;">Nenhum membro na sede.</li>';
+          }
+        })
+        .catch(() => {});
     }
 
-    // Chama a função para carregar os presentes imediatamente e depois a cada 1 minuto
     carregarPresentes();
     setInterval(carregarPresentes, 60000);
   </script>
 </body>
 </html>
-
